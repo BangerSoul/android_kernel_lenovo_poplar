@@ -27,6 +27,7 @@ This guide provides complete, production-grade instructions for configuring, pat
    - [8.3 Unpacking Existing Boot Images](#83-unpacking-existing-boot-images)
    - [8.4 Cryptographic AVB Invariant Verification](#84-cryptographic-avb-invariant-verification)
 9. [Flashing & Runtime Verification](#9-flashing--runtime-verification)
+10. [Repository & GitHub Publishing](#10-repository--github-publishing)
 
 ---
 
@@ -363,11 +364,23 @@ fastboot reboot
 
 ## 10. Repository & GitHub Publishing
 
-- **Remote (`origin`)**: `https://github.com/iamsh/android_kernel_lenovo_poplar.git`
-- **Target Branch**: `lineage-21.0`
-- **Manifest Path**: `kernel/lenovo/poplar` (wired in `.repo/local_manifests/poplar.xml`)
+- **Repository**: [`BangerSoul/android_kernel_lenovo_poplar`](https://github.com/BangerSoul/android_kernel_lenovo_poplar)
+- **Remote (`origin`)**: `https://github.com/BangerSoul/android_kernel_lenovo_poplar.git`
+- **Default / Target Branch**: `lineage-21.0`
+- **Manifest Path**: `kernel/lenovo/poplar` (wired via [`BangerSoul/local_manifests_poplar`](https://github.com/BangerSoul/local_manifests_poplar) in `.repo/local_manifests/poplar.xml`)
+
+### Related Repositories
+
+| Component | Repository | Manifest / Workspace Path |
+|---|---|---|
+| **Project Hub & Research** | [`BangerSoul/ArrowOS-TB311FU`](https://github.com/BangerSoul/ArrowOS-TB311FU) | `/` |
+| **Device Tree** | [`BangerSoul/android_device_lenovo_poplar`](https://github.com/BangerSoul/android_device_lenovo_poplar) | `device/lenovo/poplar` |
+| **Proprietary Vendor Blobs** | [`BangerSoul/proprietary_vendor_lenovo_poplar`](https://github.com/BangerSoul/proprietary_vendor_lenovo_poplar) | `vendor/lenovo/poplar` |
+| **Kernel Config & Boot Tooling** | [`BangerSoul/android_kernel_lenovo_poplar`](https://github.com/BangerSoul/android_kernel_lenovo_poplar) | `kernel/lenovo/poplar` |
+| **Local Manifests** | [`BangerSoul/local_manifests_poplar`](https://github.com/BangerSoul/local_manifests_poplar) | `.repo/local_manifests` |
 
 ```bash
+git clone https://github.com/BangerSoul/android_kernel_lenovo_poplar.git -b lineage-21.0
 git remote -v
 git push -u origin lineage-21.0
 ```
