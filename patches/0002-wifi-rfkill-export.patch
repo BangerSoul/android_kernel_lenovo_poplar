@@ -3,7 +3,7 @@ From: BangerSoul <iamshaikhazmathulla@gmail.com>
 Date: Mon, 16 Nov 2026 07:00:00 +0000
 Subject: [PATCH 2/2] net/rfkill: Export rfkill_set_states for downstream MediaTek Wi-Fi driver
 
-On Lenovo Tab M9 / Tab M11 (TB311FU / poplar, MediaTek MT8786 / Helio G85/G88),
+On Lenovo Tab (TB311FU / poplar, MediaTek MT8786 / Helio G85),
 the downstream out-of-tree MediaTek Wi-Fi driver (wlan_drv_gen4m_6768.ko)
 requires rfkill_set_states() to simultaneously synchronize hardware and software
 radio block states during Wi-Fi activation, radio calibration, and airplane mode transitions.
