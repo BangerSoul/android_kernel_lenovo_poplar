@@ -1,11 +1,11 @@
-# Lenovo Tab M9 / Tab M11 (TB311FU) - Linux 6.6 Kernel Compilation & Boot Tooling Guide
+# Lenovo Tab (TB311FU / poplar) - Linux 6.6 Kernel Compilation & Boot Tooling Guide
 
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL%202.0-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 [![Device: Lenovo TB311FU](https://img.shields.io/badge/Device-Lenovo%20TB311FU%20(poplar)-orange.svg)](https://www.lenovo.com)
 [![Kernel: Linux 6.6 GKI 2.0](https://img.shields.io/badge/Kernel-Linux%206.6%20GKI%202.0-teal.svg)](https://kernel.org)
 [![Toolchain: Clang 18](https://img.shields.io/badge/Toolchain-AOSP%20Clang%2018.0.0%20(r510928)-purple.svg)](https://android.googlesource.com)
 
-This guide provides complete, production-grade instructions for configuring, patching, building, and assembling the **Linux 6.6 LTS Generic Kernel Image (GKI 2.0)** for the **Lenovo Tab M9 / Tab M11** (Model: `TB311FU`, internal codename `poplar` / `poplar_row_wifi`, MediaTek MT8786 / Helio G85/G88).
+This guide provides complete, production-grade instructions for configuring, patching, building, and assembling the **Linux 6.6 LTS Generic Kernel Image (GKI 2.0)** for the **Lenovo Tab** (Model: `TB311FU`, internal codename `poplar` / `poplar_row_wifi`, MediaTek MT8786 / Helio G85).
 
 ---
 
@@ -34,7 +34,7 @@ This guide provides complete, production-grade instructions for configuring, pat
 
 | Parameter | Specification | Details / Verification Source |
 |---|---|---|
-| **Device Model** | Lenovo TB311FU | Lenovo Tab M9 Wi-Fi / Tab M11 (`mssi_t_64_cn_armv82_wifi`) |
+| **Device Model** | Lenovo TB311FU | Lenovo Tab (`ro.config.lgsi.market_name=Lenovo Tab`, `mssi_t_64_cn_armv82_wifi`) |
 | **Internal Codename** | `poplar` / `poplar_row_wifi` | MTK Board: `tb8786p1_64_k66` / Base Project `tc422` |
 | **SoC** | MediaTek MT8786 / Helio G85 | 2x ARM Cortex-A75 @ 2.0 GHz + 6x ARM Cortex-A55 @ 1.8 GHz |
 | **GPU** | ARM Mali-G52 2EEMC2 | Bifrost v7 architecture, Panfrost open-source driver compatible |
@@ -117,7 +117,7 @@ cd kernel_lenovo_TB311FU
 
 ### 4.1 Backlight Floor Clamp (>= 48)
 - **Patch file**: `patches/0001-backlight-floor-clamp-48.patch`
-- **Root Cause**: On TB311FU, the BOE 11.0" WUXGA IPS LCD panel backlight boost converter drops out of regulation and shuts off whenever the raw PWM duty cycle drops below 48 (approx 1.17% on 12-bit $0 \dots 4095$ scale). When the user drags the brightness slider to minimum (0% or 1%), the screen drops to 0 nits (complete black screen), making the tablet appear frozen or dead.
+- **Root Cause**: On TB311FU, the 10.1" 1920x1200 WUXGA IPS LCD panel backlight boost converter drops out of regulation and shuts off whenever the raw PWM duty cycle drops below 48 (approx 1.17% on 12-bit $0 \dots 4095$ scale). When the user drags the brightness slider to minimum (0% or 1%), the screen drops to 0 nits (complete black screen), making the tablet appear frozen or dead.
 - **Solution**: Clamp brightness in `drivers/video/backlight/backlight.c` and `drivers/video/backlight/pwm_bl.c` so that active panel brightness (`brightness > 0`) is clamped to `>= 48`, while preserving `brightness == 0` for screen blanking / suspend.
 
 Apply patch:
@@ -166,7 +166,7 @@ cp tb311fu_defconfig arch/arm64/configs/tb311fu_defconfig
 | **Graphics** | `CONFIG_DRM_PANFROST` | `m` | Open-source ARM Mali Bifrost GPU driver |
 | **Audio** | `CONFIG_SND_SOC_MT6358` | `m` | PMIC audio codec |
 | **Audio** | `CONFIG_SND_SOC_MT6768_AFE` | `m` | MediaTek Audio Front End driver |
-| **Audio** | `CONFIG_SND_SOC_AW883XX` | `m` | Awinic Smart PA quad-speaker amplifier |
+| **Audio** | `CONFIG_SND_SOC_AW883XX` | `m` | Awinic Smart PA dual stereo speaker amplifier |
 | **Filesystems** | `CONFIG_EROFS_FS` | `y` | High-efficiency read-only super partition mounting |
 | **Integrity** | `CONFIG_DM_VERITY` | `y` | Device mapper verity integrity checking |
 

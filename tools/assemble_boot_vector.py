@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 tools/assemble_boot_vector.py - Android Boot Header v4 AVB 2.0 Boot Vector Assembler & Cryptographic Auditor
-Target Device: Lenovo Tab M9 / Tab M11 (TB311FU / poplar, MediaTek MT8786 / Helio G85/G88)
+Target Device: Lenovo Tab (TB311FU / poplar, MediaTek MT8786 / Helio G85)
 
 Assembles, unpacks, and cryptographically verifies the 32 MiB (33,554,432 bytes) Android Boot Header v4
 boot vector for Lenovo TB311FU, strictly enforcing the Little Kernel (LK) Android Verified Boot (AVB) 2.0 invariant:
@@ -59,12 +59,13 @@ EXPECTED_SIGNATURE_SHA256: str = "fe45c90d220fbd0a32b14f74b86bad89757eb5ffebf6a2
 DEFAULT_CMDLINE: str = "bootconfig console=tty0 console=ttyMT0,921600n8 androidboot.hardware=mt8786 panic=5"
 BOOT_ARGS_MAX_SIZE: int = 1536             # 512 + 1024 bytes
 
-# Embedded Pristine 2,432-byte Lenovo OEM RSA4096 VBMeta Block (Verified SHA-256: 56c29e7692...)
+# Embedded Pristine 2,432-byte Lenovo OEM RSA4096 VBMeta Block
+# Verified SHA-256: 56c29e7692aae205e7eda2912be53f3d6a419125ab61414052d367c395f057ba
 OEM_VBMETA_PAYLOAD_B64: str = (
-    "QVZCMAAAAAEAAAAAAAAAAAAAAkAAAAAAAAAGQAAAAAIAAAAAAAAAAAAAAAAAAAAgAAAAAAAAACAAAAAAAA"
-    "ACAAAAAAAAAAIAAAAAAAAABAgAAAAAAAAGCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAA"
-    "AAAAAABhdmJ0b29sIDEuMy4wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "QVZCMAAAAAEAAAAAAAAAAAAAAkAAAAAAAAAGQAAAAAIAAAAAAAAAAAAAAAAAAAAgAAAAAAAAACAAAAAA"
+    "AAACAAAAAAAAAAIAAAAAAAAABAgAAAAAAAAGCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAA"
+    "AAAAAAAAAABhdmJ0b29sIDEuMy4wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
     "AAAAAAAAAAAAAAAAAAAAAM2zH6g5imi0SS+8qqoBcyqOcQHMOBYyaqnumAI0Im6bToNWctH0PBFT1m9U"
     "ByaaQ6+Aq2lqmm+2rIwcg23OuRjyY23Ugn1XRM4MEEZBzLTxAjEUSDdqW39m7wDhQNWFDkpj8+RtwCtl"
     "tSTgqM+61oNH+ZwYMv3fng4ZmjJR7NTolrlPnPegICE7l1l0UDEzHj+snnTiCb2JnCIH4I3zgMlQ0A26"
@@ -100,8 +101,8 @@ OEM_VBMETA_PAYLOAD_B64: str = (
     "XmEgRaSJ5wCp5L3GiimvM9zuHZij3GMy9ZdVP0X8ugZwIiwUoBhyK9YTW6TIkeGxBpv0wIV1c4+BkfJf"
     "fGGa6a0cvFl4nG4EIEdJdzFRm4Y0H6dIMMw0J4pS+FlpztmtXjIL4oaEBEsqtQz3R2baVzBva1MAxSbZ"
     "GhoHYXIRtpPziqKFM2f58rhENu/JnhyZjrJsOSTK4I9jsJnpdr4Y0w1bwjC7FVCfe9izctQ6+lQwJn5q"
-    "3vL/58Zpa7tztWhBMeUI8gmRoakd+zaOjOLSTeV6wCelGEMjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    "3vL/58Zpa7tztWhBMeUI8gmRoakd+zaOjOLSTeV6wCelGEMjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 )
 
 
@@ -206,7 +207,6 @@ def extract_oem_vbmeta_block(stock_boot_source: Optional[str | Path] = None) -> 
     candidates.extend([
         Path(r"C:\ProgramData\RSA\Download\RomFiles\TB311FU_ROW_OPEN_USER_M1457.5_W_ZUI_17.5.36.508_ST_261024\TB311FU_ROW_OPEN_USER_M1457.5_W_ZUI_17.5.36.508_ST_261024\image\boot.img"),
         Path("stock_boot.img"),
-        Path("boot.img"),
     ])
 
     resolved = resolve_existing_path(*candidates)
@@ -379,8 +379,9 @@ def assemble_boot_vector(
     ramdisk_data = b""
     if ramdisk_source:
         r_path = Path(ramdisk_source)
-        if r_path.is_file():
-            ramdisk_data = r_path.read_bytes()
+        if not r_path.is_file():
+            raise FileNotFoundError(f"Ramdisk file not found: {r_path}")
+        ramdisk_data = r_path.read_bytes()
     ramdisk_size = len(ramdisk_data)
     if verbose and ramdisk_size > 0:
         print(f"  [2/6] Ingested ramdisk payload: {ramdisk_size:,} bytes")
@@ -776,7 +777,7 @@ def unpack_boot_vector(
 
     kernel_size, ramdisk_size = struct.unpack("<II", image_data[8:16])
     packed_os_ver = struct.unpack("<I", image_data[16:20])[0]
-    os_version = (packed_os_ver >> 11) & 0x7FFFF
+    os_version = (packed_os_ver >> 11) & 0x1FFFFF
     os_patch_level = packed_os_ver & 0x7FF
     header_size = struct.unpack("<I", image_data[20:24])[0]
     header_version = struct.unpack("<I", image_data[40:44])[0]
