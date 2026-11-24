@@ -27,14 +27,14 @@ diff --git a/android/abi_gki_aarch64 b/android/abi_gki_aarch64
 index 28a1c90..7b91d4e 100644
 --- a/android/abi_gki_aarch64
 +++ b/android/abi_gki_aarch64
-@@ -1045,6 +1045,7 @@
+@@ -1045,5 +1045,6 @@
    rfkill_register
    rfkill_resume_polling
    rfkill_set_hw_state
 +  rfkill_set_states
    rfkill_set_sw_state
    rfkill_unregister
- diff --git a/net/rfkill/core.c b/net/rfkill/core.c
+diff --git a/net/rfkill/core.c b/net/rfkill/core.c
 index 8e3290b21..6d942918a 100644
 --- a/net/rfkill/core.c
 +++ b/net/rfkill/core.c
