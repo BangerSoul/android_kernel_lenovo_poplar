@@ -1,0 +1,50 @@
+From 967c3c38b40d4e9032d0d45791c1148d9b76883a Mon Sep 17 00:00:00 2001
+From: BangerSoul <iamshaikhazmathulla@gmail.com>
+Date: Mon, 16 Nov 2026 07:00:00 +0000
+Subject: [PATCH 2/2] net/rfkill: Export rfkill_set_states for downstream MediaTek Wi-Fi driver
+
+On Lenovo Tab M9 / Tab M11 (TB311FU / poplar, MediaTek MT8786 / Helio G85/G88),
+the downstream out-of-tree MediaTek Wi-Fi driver (wlan_drv_gen4m_6768.ko)
+requires rfkill_set_states() to simultaneously synchronize hardware and software
+radio block states during Wi-Fi activation, radio calibration, and airplane mode transitions.
+
+In standard Android Generic Kernel Image (GKI) 6.6 builds, KMI symbol trimming
+(CONFIG_TRIM_UNUSED_KSYMS=y) drops unlisted symbols from __ksymtab. Furthermore,
+standard upstream kernels do not export rfkill_set_states to loadable modules.
+Without this export, loading wlan_drv_gen4m_6768.ko fails with:
+  "wlan_drv_gen4m_6768: Unknown symbol rfkill_set_states (err -2)"
+
+Export rfkill_set_states via EXPORT_SYMBOL() and register it in the GKI symbol
+whitelist so that downstream vendor connectivity drivers bind cleanly at runtime.
+
+Signed-off-by: Azmathulla Shaik <iamshaikhazmathulla@gmail.com>
+---
+ android/abi_gki_aarch64 | 1 +
+ net/rfkill/core.c       | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/android/abi_gki_aarch64 b/android/abi_gki_aarch64
+index 28a1c90..7b91d4e 100644
+--- a/android/abi_gki_aarch64
++++ b/android/abi_gki_aarch64
+@@ -1045,6 +1045,7 @@
+   rfkill_register
+   rfkill_resume_polling
+   rfkill_set_hw_state
++  rfkill_set_states
+   rfkill_set_sw_state
+   rfkill_unregister
+ diff --git a/net/rfkill/core.c b/net/rfkill/core.c
+index 8e3290b21..6d942918a 100644
+--- a/net/rfkill/core.c
++++ b/net/rfkill/core.c
+@@ -743,6 +743,7 @@ void rfkill_set_states(struct rfkill *rfkill, bool sw, bool hw)
+ 	rfkill_event(rfkill);
+ 	spin_unlock_irqrestore(&rfkill->lock, flags);
+ }
++EXPORT_SYMBOL(rfkill_set_states);
+ 
+ static bool __rfkill_set_hw_state(struct rfkill *rfkill, bool blocked,
+ 				  bool *change)
+-- 
+2.43.0
