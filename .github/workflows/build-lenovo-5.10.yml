@@ -1,0 +1,63 @@
+name: Build Lenovo 5.10.198 kernel (TB311FU)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ lenovo-5.10.198 ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          df -h /
+
+      # The vmlinux LTO link is single-threaded and needs far more than the
+      # 7 GB of RAM a GitHub runner has; both earlier attempts died there with
+      # the process Killed. Swap absorbs the peak.
+      - name: Add swap
+        run: |
+          # The runner image already has an active /swapfile; fallocate on it
+          # fails with "Text file busy", so release and recreate it bigger.
+          free -h
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 12G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=12288 status=none
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo sysctl -w vm.swappiness=10
+          free -h
+          df -h /
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang lld llvm bc bison flex libssl-dev libelf-dev kmod python3 rsync zip \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: Fetch Lenovo source package
+        run: |
+          URL='https://download.lenovo.com/consumer/mobiles/lenovo_tab_%28tb311fu%29_opensource_zui_16.0.10.033_stable_version.tgz'
+          curl -fL --retry 3 --retry-delay 5 -o lenovo-src.tgz "$URL"
+          echo "95987a05be184b719420008542f3d2ce65eac82b181f1e6f052422d740fd272c  lenovo-src.tgz" | sha256sum -c -
+          tar xzf lenovo-src.tgz
+          tar xf kernel_5.10.tar
+
+      - name: Build kernel and modules
+        run: ./scripts/lenovo/build-5.10.sh kernel-5.10 out
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lenovo-5.10.198-tb311fu
+          path: |
+            out/arch/arm64/boot/Image.gz
+            out/modules.tar.gz
+          if-no-files-found: error
