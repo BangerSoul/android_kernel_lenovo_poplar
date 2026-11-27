@@ -1,0 +1,3 @@
+Linux 5.10.198
+VERSION=5 PATCHLEVEL=10 SUBLEVEL=198
+board config: tb8786p1_64_k510_wifi_row
